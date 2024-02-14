@@ -6,7 +6,7 @@ use std::net::TcpStream;
 
 use menu::MainMenu;
 // use connector::connector::Connector;
-use crate::errors::{RecvError, SendResult, RecvResult, SendError};
+use crate::errors::{RecvError, RecvResult, SendError, SendResult};
 
 pub fn send_command<Writer: Write>(data: &str, mut writer: Writer) -> SendResult {
     let bytes = data.as_bytes();
@@ -24,24 +24,24 @@ pub fn receive_result(mut stream: &TcpStream) -> RecvResult {
     i
 }
 
-pub fn shutdown(stream: &TcpStream) -> Result<(), SendError>  {
+pub fn shutdown(stream: &TcpStream) -> Result<(), SendError> {
     stream.shutdown(std::net::Shutdown::Both).expect("ERROR");
     Ok(())
 }
 
 fn main() -> Result<(), errors::SendError> {
     match TcpStream::connect("127.0.0.1:4343") {
-            Ok(stream) => {
-                println!("\nConnected to the server!");
-                loop {
-                    MainMenu::choices(&stream).unwrap(); 
-                    match receive_result(&stream) {
+        Ok(stream) => {
+            println!("\nConnected to the server!");
+            loop {
+                MainMenu::choices(&stream).unwrap();
+                match receive_result(&stream) {
                         Ok(result) => println!("\n[START MESSAGE]\n-----------------\n{}\n-----------------\n[END MESSAGE]", result),
                         Err(e) => eprintln!("[ERROR]: {}", e)
                     }
-                }
-            },
-            Err(e) => println!("{}", e)
-        };
+            }
+        }
+        Err(e) => println!("{}", e),
+    };
     Ok(())
 }

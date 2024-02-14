@@ -4,7 +4,6 @@ pub struct RequestHandlers {
     connector: Connector,
 }
 
-
 impl RequestHandlers {
     // TODO: move outside the handler
     pub fn new() -> Self {
@@ -31,8 +30,7 @@ impl RequestHandlers {
             "create" => {
                 let req_h = RequestHandlers::new();
                 format!("{:#?}", req_h.connector)
-
-            },
+            }
             "on" => self.on(),
             "off" => self.off(),
             _ => "Bad command".into(),
