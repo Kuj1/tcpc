@@ -1,5 +1,4 @@
 pub mod handlers;
-pub mod menu;
 pub mod errors;
 
 use std::io::{Read, Write};
@@ -26,7 +25,7 @@ fn handle_connection(stream: &TcpStream) -> Result<(), errors::SendError> {
     println!("Connected: {}", stream.peer_addr().unwrap());
     let mut handler = RequestHandlers::new();
     loop {
-        let mut buf = [0; 4];
+        let mut buf = [0; 6];
         match recive_command(stream, &mut buf) {
             Ok(command) => println!("{:#?}", command),
             Err(e) => eprint!("[ERROR]: {}",e)

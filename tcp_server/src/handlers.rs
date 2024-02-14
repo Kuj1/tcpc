@@ -25,16 +25,16 @@ impl RequestHandlers {
         self.set_enabled("off")
     }
 
-    pub fn status(&self) -> String {
-        self.connector.get_data()
-    }
-
     pub fn handle(&mut self, request: &str) -> String {
         let command = request.split(":").next().unwrap();
         match command {
+            "create" => {
+                let req_h = RequestHandlers::new();
+                format!("{:#?}", req_h.connector)
+
+            },
             "on" => self.on(),
             "off" => self.off(),
-            "stat" => self.status(),
             _ => "Bad command".into(),
         }
     }
