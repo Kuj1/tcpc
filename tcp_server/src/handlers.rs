@@ -4,6 +4,12 @@ pub struct RequestHandlers {
     connector: Connector,
 }
 
+impl Default for RequestHandlers {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RequestHandlers {
     // TODO: move outside the handler
     pub fn new() -> Self {
@@ -25,7 +31,7 @@ impl RequestHandlers {
     }
 
     pub fn handle(&mut self, request: &str) -> String {
-        let command = request.split(":").next().unwrap();
+        let command = request.split(':').next().unwrap();
         match command {
             "create" => {
                 let req_h = RequestHandlers::new();

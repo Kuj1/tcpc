@@ -16,8 +16,7 @@ pub fn send_result<Writer: Write>(data: &str, mut writer: Writer) -> SendResult 
 
 pub fn recive_command<'a>(mut stream: &'a TcpStream, mut buf: &mut [u8]) -> RecvResult<'a> {
     stream.read(&mut buf)?;
-    let i = String::from_utf8(buf.to_vec()).map_err(|_| RecvError::BadEncoding);
-    i
+    String::from_utf8(buf.to_vec()).map_err(|_| RecvError::BadEncoding)
 }
 
 fn handle_connection(stream: &TcpStream) -> Result<(), errors::SendError> {
@@ -41,14 +40,14 @@ fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:4343")?;
     for stream in listener.incoming() {
         loop {
-            let mut conn = match stream {
+            let conn = match stream {
                 Ok(ref c) => c,
                 Err(ref e) => {
                     eprintln!("[Wrong connection]: {}", e);
                     continue;
                 }
             };
-            handle_connection(&mut conn).expect("[ERROR]: While handle connection");
+            handle_connection(conn).expect("[ERROR]: While handle connection");
         }
     }
     Ok(())

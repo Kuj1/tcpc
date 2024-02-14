@@ -20,8 +20,7 @@ pub fn send_command<Writer: Write>(data: &str, mut writer: Writer) -> SendResult
 pub fn receive_result(mut stream: &TcpStream) -> RecvResult {
     let mut buf = [0; 50];
     stream.read(&mut buf)?;
-    let i = String::from_utf8(buf.to_vec()).map_err(|_| RecvError::BadEncoding);
-    i
+    String::from_utf8(buf.to_vec()).map_err(|_| RecvError::BadEncoding)
 }
 
 pub fn shutdown(stream: &TcpStream) -> Result<(), SendError> {
