@@ -52,7 +52,7 @@ fn handle_connection(
 fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:4343")?;
     let mut connector = Connector::default();
-    for stream in listener.incoming() {
+    if let Some(stream) = listener.incoming().next() {
         println!(
             "Connected: {}",
             stream.as_ref().unwrap().peer_addr().unwrap()
