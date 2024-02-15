@@ -38,11 +38,8 @@ fn handle_connection(stream: &TcpStream, mut rh: RequestHandlers, cn: &mut Conne
 
 fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:4343")?;
-    // let handler = RequestHandlers;
     let mut connector = Connector::default();
     for stream in listener.incoming() {
-        // let mut handler = RequestHandlers;
-        // let mut connector = handler.create();
         loop {
             let handler = RequestHandlers;
             let connector = &mut connector;
