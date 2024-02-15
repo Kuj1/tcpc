@@ -1,44 +1,26 @@
 use connector::connector::Connector;
 
-pub struct RequestHandlers {
-    connector: Connector,
-}
-
-impl Default for RequestHandlers {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+pub struct RequestHandlers;
 
 impl RequestHandlers {
-    // TODO: move outside the handler
-    pub fn new() -> Self {
-        Self {
-            connector: Connector::new(),
-        }
+    pub fn on(&mut self, connector: &mut Connector) -> String {
+        connector.on_off("on")
     }
 
-    pub fn set_enabled(&mut self, is_enable: &str) -> String {
-        self.connector.on_off(is_enable)
+    pub fn off(&mut self, connector: &mut Connector) -> String {
+        connector.on_off("off")
     }
 
-    pub fn on(&mut self) -> String {
-        self.set_enabled("on")
+    pub fn get_status(&mut self, connector: &Connector) -> String {
+        format!("{:#?}", connector)
     }
 
-    pub fn off(&mut self) -> String {
-        self.set_enabled("off")
-    }
-
-    pub fn handle(&mut self, request: &str) -> String {
+    pub fn handle(&mut self, request: &str, mut connector: &mut Connector) -> String {
         let command = request.split(':').next().unwrap();
         match command {
-            "create" => {
-                let req_h = RequestHandlers::new();
-                format!("{:#?}", req_h.connector)
-            }
-            "on" => self.on(),
-            "off" => self.off(),
+            "on" => self.on(&mut connector),
+            "off" => self.off(&mut connector),
+            "stat" => self.get_status(connector),
             _ => "Bad command".into(),
         }
     }

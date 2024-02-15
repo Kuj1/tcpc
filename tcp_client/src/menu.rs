@@ -9,9 +9,9 @@ impl MainMenu {
         println!(
             "
             Choose one option:\n
-                \t1) Create Connector
-                \t2) On Connector;
-                \t3) Off Connector;
+                \t1) On Connector;
+                \t2) Off Connector;
+                \t3) Get Status;
                 \tOther) Exit.
         "
         );
@@ -23,9 +23,9 @@ impl MainMenu {
         println!("Selected: {}", selected);
 
         let _ = match selected {
-            "1" => send_command("create", stream),
-            "2" => send_command("on:::", stream),
-            "3" => send_command("off::", stream),
+            "1" => send_command("on::::", stream),
+            "2" => send_command("off:::", stream),
+            "3" => send_command("stat::", stream),
             _ => shutdown(stream),
         };
 

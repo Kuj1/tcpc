@@ -5,6 +5,7 @@ use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 
 use crate::handlers::RequestHandlers;
+use connector::connector::Connector;
 use errors::{RecvError, RecvResult, SendResult};
 
 pub fn send_result<Writer: Write>(data: &str, mut writer: Writer) -> SendResult {
@@ -15,13 +16,12 @@ pub fn send_result<Writer: Write>(data: &str, mut writer: Writer) -> SendResult 
 }
 
 pub fn recive_command<'a>(mut stream: &'a TcpStream, mut buf: &mut [u8]) -> RecvResult<'a> {
-    stream.read(&mut buf)?;
+    stream.read_exact(&mut buf)?;
     String::from_utf8(buf.to_vec()).map_err(|_| RecvError::BadEncoding)
 }
 
-fn handle_connection(stream: &TcpStream) -> Result<(), errors::SendError> {
+fn handle_connection(stream: &TcpStream, mut rh: RequestHandlers, mut cn: &mut Connector) -> Result<(), errors::SendError> {
     println!("Connected: {}", stream.peer_addr().unwrap());
-    let mut handler = RequestHandlers::new();
     loop {
         let mut buf = [0; 6];
         match recive_command(stream, &mut buf) {
@@ -30,7 +30,7 @@ fn handle_connection(stream: &TcpStream) -> Result<(), errors::SendError> {
         }
 
         let request = std::str::from_utf8(&buf);
-        let resp = handler.handle(request.unwrap());
+        let resp = rh.handle(request.unwrap(), &mut cn);
         let sended = send_result(&resp, stream);
         return sended;
     }
@@ -38,8 +38,14 @@ fn handle_connection(stream: &TcpStream) -> Result<(), errors::SendError> {
 
 fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:4343")?;
+    // let handler = RequestHandlers;
+    let mut connector = Connector::default();
     for stream in listener.incoming() {
+        // let mut handler = RequestHandlers;
+        // let mut connector = handler.create();
         loop {
+            let handler = RequestHandlers;
+            let connector = &mut connector;
             let conn = match stream {
                 Ok(ref c) => c,
                 Err(ref e) => {
@@ -47,7 +53,7 @@ fn main() -> std::io::Result<()> {
                     continue;
                 }
             };
-            handle_connection(conn).expect("[ERROR]: While handle connection");
+            handle_connection(conn, handler, connector).expect("[ERROR]: While handle connection");
         }
     }
     Ok(())
