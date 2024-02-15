@@ -4,8 +4,8 @@ pub mod menu;
 use std::io::{Read, Write};
 use std::net::TcpStream;
 
-use menu::MainMenu;
 use crate::errors::{RecvError, RecvResult, SendError, SendResult};
+use menu::MainMenu;
 
 pub fn send_command<Writer: Write>(data: &str, mut writer: Writer) -> SendResult {
     let bytes = data.as_bytes();

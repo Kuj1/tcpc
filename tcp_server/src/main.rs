@@ -18,7 +18,7 @@ pub fn send_result<Writer: Write>(data: &str, mut writer: Writer) -> SendResult 
     Ok(())
 }
 
-pub fn recive_command(mut stream: &TcpStream) -> RecvResult{
+pub fn recive_command(mut stream: &TcpStream) -> RecvResult {
     let mut buf = [0; 4];
     stream.read_exact(&mut buf)?;
     // println!("{:?}", buf);
@@ -37,13 +37,14 @@ fn handle_connection(
     let request = match recive_command(stream) {
         Ok(command) => {
             println!("{:#?}", command);
-            command},
+            command
+        }
         Err(e) => {
             eprint!("[ERROR]: {}", e);
             format!("[ERROR]: {}", e)
-            },
+        }
     };
-    
+
     let resp = rh.handle(&request, cn);
     send_result(&resp, stream)
 }
@@ -52,7 +53,10 @@ fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:4343")?;
     let mut connector = Connector::default();
     for stream in listener.incoming() {
-        println!("Connected: {}", stream.as_ref().unwrap().peer_addr().unwrap());
+        println!(
+            "Connected: {}",
+            stream.as_ref().unwrap().peer_addr().unwrap()
+        );
         loop {
             let handler = RequestHandlers;
             let connector = &mut connector;
