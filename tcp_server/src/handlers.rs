@@ -15,11 +15,11 @@ impl RequestHandlers {
         format!("{:#?}", connector)
     }
 
-    pub fn handle(&mut self, request: &str, mut connector: &mut Connector) -> String {
+    pub fn handle(&mut self, request: &str, connector: &mut Connector) -> String {
         let command = request.split(':').next().unwrap();
         match command {
-            "on" => self.on(&mut connector),
-            "off" => self.off(&mut connector),
+            "on" => self.on(connector),
+            "off" => self.off(connector),
             "stat" => self.get_status(connector),
             _ => "Bad command".into(),
         }

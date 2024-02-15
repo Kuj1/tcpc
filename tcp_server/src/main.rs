@@ -20,7 +20,7 @@ pub fn recive_command<'a>(mut stream: &'a TcpStream, mut buf: &mut [u8]) -> Recv
     String::from_utf8(buf.to_vec()).map_err(|_| RecvError::BadEncoding)
 }
 
-fn handle_connection(stream: &TcpStream, mut rh: RequestHandlers, mut cn: &mut Connector) -> Result<(), errors::SendError> {
+fn handle_connection(stream: &TcpStream, mut rh: RequestHandlers, cn: &mut Connector) -> Result<(), errors::SendError> {
     println!("Connected: {}", stream.peer_addr().unwrap());
     loop {
         let mut buf = [0; 6];
@@ -30,7 +30,7 @@ fn handle_connection(stream: &TcpStream, mut rh: RequestHandlers, mut cn: &mut C
         }
 
         let request = std::str::from_utf8(&buf);
-        let resp = rh.handle(request.unwrap(), &mut cn);
+        let resp = rh.handle(request.unwrap(), cn);
         let sended = send_result(&resp, stream);
         return sended;
     }
