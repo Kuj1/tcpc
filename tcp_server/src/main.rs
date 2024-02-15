@@ -14,18 +14,19 @@ pub fn send_result<Writer: Write>(data: &str, mut writer: Writer) -> SendResult 
     let len_bytes = len.to_be_bytes();
     writer.write_all(&len_bytes)?;
     writer.write_all(bytes)?;
-    // println!("data: {}", &data);
     Ok(())
 }
 
 pub fn recive_command(mut stream: &TcpStream) -> RecvResult {
     let mut buf = [0; 4];
     stream.read_exact(&mut buf)?;
-    // println!("{:?}", buf);
+    println!("bytes len in be_bytes array: {:?}", buf);
     let len = u32::from_be_bytes(buf);
+    println!("len in u32: {}", len);
     let mut buf = vec![0; len as _];
+    println!("vec for new buff of len 32: {:?}", buf);
     stream.read_exact(&mut buf)?;
-    // println!("{:?}", buf);
+    println!("read buff and see our data bytes: {:?}", buf);
     String::from_utf8(buf).map_err(|_| RecvError::BadEncoding)
 }
 

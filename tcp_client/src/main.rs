@@ -9,12 +9,14 @@ use menu::MainMenu;
 
 pub fn send_command<Writer: Write>(data: &str, mut writer: Writer) -> SendResult {
     let bytes = data.as_bytes();
-    // println!("bytes len: {}", bytes.len());
+    println!("data bytes: {:?}", bytes);
+    println!("bytes len in u32: {}", bytes.len());
     let len = bytes.len() as u32;
     let len_bytes = len.to_be_bytes();
+    println!("bytes len in be_bytes array: {:?}", len_bytes);
     writer.write_all(&len_bytes)?;
     writer.write_all(bytes)?;
-    // println!("data: {}", &data);
+    
     Ok(())
 }
 
