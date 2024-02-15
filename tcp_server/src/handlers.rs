@@ -16,8 +16,7 @@ impl RequestHandlers {
     }
 
     pub fn handle(&mut self, request: &str, connector: &mut Connector) -> String {
-        let command = request.split(':').next().unwrap();
-        match command {
+        match request {
             "on" => self.on(connector),
             "off" => self.off(connector),
             "stat" => self.get_status(connector),

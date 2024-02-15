@@ -10,36 +10,49 @@ use errors::{RecvError, RecvResult, SendResult};
 
 pub fn send_result<Writer: Write>(data: &str, mut writer: Writer) -> SendResult {
     let bytes = data.as_bytes();
+    let len = bytes.len() as u32;
+    let len_bytes = len.to_be_bytes();
+    writer.write_all(&len_bytes)?;
     writer.write_all(bytes)?;
-    println!("data: {}", &data);
+    // println!("data: {}", &data);
     Ok(())
 }
 
-pub fn recive_command<'a>(mut stream: &'a TcpStream, mut buf: &mut [u8]) -> RecvResult<'a> {
+pub fn recive_command(mut stream: &TcpStream) -> RecvResult{
+    let mut buf = [0; 4];
     stream.read_exact(&mut buf)?;
-    String::from_utf8(buf.to_vec()).map_err(|_| RecvError::BadEncoding)
+    // println!("{:?}", buf);
+    let len = u32::from_be_bytes(buf);
+    let mut buf = vec![0; len as _];
+    stream.read_exact(&mut buf)?;
+    // println!("{:?}", buf);
+    String::from_utf8(buf).map_err(|_| RecvError::BadEncoding)
 }
 
-fn handle_connection(stream: &TcpStream, mut rh: RequestHandlers, cn: &mut Connector) -> Result<(), errors::SendError> {
-    println!("Connected: {}", stream.peer_addr().unwrap());
-    loop {
-        let mut buf = [0; 6];
-        match recive_command(stream, &mut buf) {
-            Ok(command) => println!("{:#?}", command),
-            Err(e) => eprint!("[ERROR]: {}", e),
-        }
-
-        let request = std::str::from_utf8(&buf);
-        let resp = rh.handle(request.unwrap(), cn);
-        let sended = send_result(&resp, stream);
-        return sended;
-    }
+fn handle_connection(
+    stream: &TcpStream,
+    mut rh: RequestHandlers,
+    cn: &mut Connector,
+) -> Result<(), errors::SendError> {
+    let request = match recive_command(stream) {
+        Ok(command) => {
+            println!("{:#?}", command);
+            command},
+        Err(e) => {
+            eprint!("[ERROR]: {}", e);
+            format!("[ERROR]: {}", e)
+            },
+    };
+    
+    let resp = rh.handle(&request, cn);
+    send_result(&resp, stream)
 }
 
 fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:4343")?;
     let mut connector = Connector::default();
     for stream in listener.incoming() {
+        println!("Connected: {}", stream.as_ref().unwrap().peer_addr().unwrap());
         loop {
             let handler = RequestHandlers;
             let connector = &mut connector;

@@ -20,12 +20,13 @@ impl MainMenu {
         io::stdin().read_line(&mut buf).expect("Not an option");
 
         let selected: &str = buf.trim();
+        println!("{}", buf.len());
         println!("Selected: {}", selected);
 
         let _ = match selected {
-            "1" => send_command("on::::", stream),
-            "2" => send_command("off:::", stream),
-            "3" => send_command("stat::", stream),
+            "1" => send_command("on", stream),
+            "2" => send_command("off", stream),
+            "3" => send_command("stat", stream),
             _ => shutdown(stream),
         };
 
