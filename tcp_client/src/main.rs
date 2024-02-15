@@ -5,24 +5,29 @@ use std::io::{Read, Write};
 use std::net::TcpStream;
 
 use menu::MainMenu;
-// use connector::connector::Connector;
 use crate::errors::{RecvError, RecvResult, SendError, SendResult};
 
 pub fn send_command<Writer: Write>(data: &str, mut writer: Writer) -> SendResult {
     let bytes = data.as_bytes();
     // println!("bytes len: {}", bytes.len());
+    let len = bytes.len() as u32;
+    let len_bytes = len.to_be_bytes();
+    writer.write_all(&len_bytes)?;
     writer.write_all(bytes)?;
     // println!("data: {}", &data);
     Ok(())
 }
 
-
 pub fn recieve_result(mut stream: &TcpStream) -> RecvResult {
-    let mut buf = [0; 50];
-    stream.read(&mut buf)?;
-    String::from_utf8(buf.to_vec()).map_err(|_| RecvError::BadEncoding)
+    let mut buf = [0; 4];
+    stream.read_exact(&mut buf)?;
+    // println!("{:?}", buf);
+    let len = u32::from_be_bytes(buf);
+    let mut buf = vec![0; len as _];
+    stream.read_exact(&mut buf)?;
+    // println!("{:?}", buf);
+    String::from_utf8(buf).map_err(|_| RecvError::BadEncoding)
 }
-
 
 pub fn shutdown(stream: &TcpStream) -> Result<(), SendError> {
     stream.shutdown(std::net::Shutdown::Both).expect("ERROR");
