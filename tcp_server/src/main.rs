@@ -3,6 +3,7 @@ pub mod handlers;
 
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::thread;
 
 use crate::handlers::RequestHandlers;
 use connector::connector::Connector;
@@ -20,13 +21,13 @@ pub fn send_result<Writer: Write>(data: &str, mut writer: Writer) -> SendResult 
 pub fn recive_command(mut stream: &TcpStream) -> RecvResult {
     let mut buf = [0; 4];
     stream.read_exact(&mut buf)?;
-    println!("bytes len in be_bytes array: {:?}", buf);
+    // println!("bytes len in be_bytes array: {:?}", buf);
     let len = u32::from_be_bytes(buf);
-    println!("len in u32: {}", len);
+    // println!("len in u32: {}", len);
     let mut buf = vec![0; len as _];
-    println!("vec for new buff of len 32: {:?}", buf);
+    // println!("vec for new buff of len 32: {:?}", buf);
     stream.read_exact(&mut buf)?;
-    println!("read buff and see our data bytes: {:?}", buf);
+    // println!("read buff and see our data bytes: {:?}", buf);
     String::from_utf8(buf).map_err(|_| RecvError::BadEncoding)
 }
 
@@ -53,12 +54,13 @@ fn handle_connection(
 fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:4343")?;
     let mut connector = Connector::default();
-    if let Some(stream) = listener.incoming().next() {
+    for stream in listener.incoming() {
         println!(
             "Connected: {}",
             stream.as_ref().unwrap().peer_addr().unwrap()
         );
-        loop {
+
+        thread::spawn(move || loop {
             let handler = RequestHandlers;
             let connector = &mut connector;
             let conn = match stream {
@@ -68,8 +70,14 @@ fn main() -> std::io::Result<()> {
                     continue;
                 }
             };
-            handle_connection(conn, handler, connector).expect("[ERROR]: While handle connection");
-        }
+            handle_connection(conn, handler, connector).unwrap_or_else(|_| {
+                panic!(
+                    "[ERROR]: While handle connection. {} are disconnected!",
+                    stream.as_ref().unwrap().peer_addr().unwrap()
+                )
+            });
+        });
     }
+
     Ok(())
 }
