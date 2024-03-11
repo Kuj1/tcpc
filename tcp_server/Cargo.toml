@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 thiserror = "1.0.56"
 connector = { version = "0.1.0", path = "../connector" }
+tokio = { version = "1.36.0", features = ["io-util", "net", "rt-multi-thread", "macros"] }

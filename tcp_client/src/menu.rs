@@ -1,11 +1,13 @@
-use std::{io, net::TcpStream};
+use std::io;
+
+use tokio::net::TcpStream;
 
 use crate::{errors::SendError, send_command, shutdown};
 
 pub struct MainMenu;
 
 impl MainMenu {
-    pub fn choices(stream: &TcpStream) -> Result<MainMenu, SendError> {
+    pub async fn choices(stream: &mut TcpStream) -> Result<MainMenu, SendError> {
         println!(
             "
             Choose one option:\n
@@ -22,10 +24,10 @@ impl MainMenu {
         let selected: &str = buf.trim();
 
         let _ = match selected {
-            "1" => send_command("on", stream),
-            "2" => send_command("off", stream),
-            "3" => send_command("stat", stream),
-            _ => shutdown(stream),
+            "1" => send_command("on", stream).await,
+            "2" => send_command("off", stream).await,
+            "3" => send_command("stat", stream).await,
+            _ => shutdown(stream).await,
         };
 
         Ok(MainMenu)

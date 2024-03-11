@@ -1,46 +1,46 @@
 pub mod errors;
 pub mod menu;
 
-use std::io::{Read, Write};
-use std::net::TcpStream;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpStream;
 
 use crate::errors::{RecvError, RecvResult, SendError, SendResult};
 use menu::MainMenu;
 
-pub fn send_command<Writer: Write>(data: &str, mut writer: Writer) -> SendResult {
+pub async fn send_command(data: &str, writer: &mut TcpStream) -> SendResult {
     let bytes = data.as_bytes();
-    // println!("data bytes: {:?}", bytes);
-    // println!("bytes len in u32: {}", bytes.len());
+    println!("data bytes: {:?}", bytes);
+    println!("bytes len in u32: {}", bytes.len());
     let len = bytes.len() as u32;
     let len_bytes = len.to_be_bytes();
-    // println!("bytes len in be_bytes array: {:?}", len_bytes);
-    writer.write_all(&len_bytes)?;
-    writer.write_all(bytes)?;
-
+    println!("bytes len in be_bytes array: {:?}", len_bytes);
+    writer.write_all(&len_bytes).await?;
+    writer.write_all(bytes).await?;
     Ok(())
 }
 
-pub fn recieve_result(mut stream: &TcpStream) -> RecvResult {
+pub async fn recieve_result(stream: &mut TcpStream) -> RecvResult {
     let mut buf = [0; 4];
-    stream.read_exact(&mut buf)?;
+    stream.read_exact(&mut buf).await?;
     let len = u32::from_be_bytes(buf);
     let mut buf = vec![0; len as _];
-    stream.read_exact(&mut buf)?;
+    stream.read_exact(&mut buf).await?;
     String::from_utf8(buf).map_err(|_| RecvError::BadEncoding)
 }
 
-pub fn shutdown(stream: &TcpStream) -> Result<(), SendError> {
-    stream.shutdown(std::net::Shutdown::Both).expect("ERROR");
+pub async fn shutdown(stream: &mut TcpStream) -> Result<(), SendError> {
+    stream.shutdown().await?;
     Ok(())
 }
 
-fn main() -> Result<(), errors::SendError> {
-    match TcpStream::connect("127.0.0.1:4343") {
-        Ok(stream) => {
+#[tokio::main]
+async fn main() -> Result<(), errors::SendError> {
+    match TcpStream::connect("127.0.0.1:4343").await {
+        Ok(mut stream) => {
             println!("\nConnected to the server!");
             loop {
-                MainMenu::choices(&stream).unwrap();
-                match recieve_result(&stream) {
+                MainMenu::choices(&mut stream).await?;
+                match recieve_result(&mut stream).await {
                         Ok(result) => println!("\n[START MESSAGE]\n-----------------\n{}\n-----------------\n[END MESSAGE]", result),
                         Err(e) => eprintln!("[ERROR]: {}", e)
                     }
